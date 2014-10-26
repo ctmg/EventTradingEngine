@@ -108,8 +108,8 @@ class Portfolio(object):
         dh = dict((k,v) for k,v in [(s,0) for s in self.symbol_list])
         dh['datetime'] = latest_datetime
         dh['cash'] = self.current_holdings['cash']
-        dh['commission'] = self.current_holdings['commission']
-        dh['total'] = self.current_holdings['cash']
+        dh['commission'] = self.current_holdings['commission'] 
+        dh['total'] = self.current_holdings['cash'] 
         
         for s in self.symbol_list:
             #Approximation to the real value
@@ -159,8 +159,8 @@ class Portfolio(object):
         fill_cost = self.bars.get_latest_bar_value(fill.symbol, "close")
         cost = fill_dir * fill_cost * fill.quantity
         self.current_holdings[fill.symbol] += cost
-        self.current_holdings['commission'] += fill.commission
-        self.current_holdings['cash'] -= (cost + fill.commission)
+        self.current_holdings['commission'] -= fill.commission #made negative
+        self.current_holdings['cash'] -= (cost + fill.commission) 
         self.current_holdings['total'] -= (cost + fill.commission)
     
     
@@ -187,7 +187,7 @@ class Portfolio(object):
         symbol = signal.symbol
         direction = signal.signal_type
         strength = signal.strength
-        mkt_quantity = int(floor(self.current_holdings['cash'] / self.bars.get_latest_bar_value(symbol, "close")))
+        mkt_quantity = int(floor((self.current_holdings['cash'] * strength) / self.bars.get_latest_bar_value(symbol, "close")))
         cur_quantity = self.current_positions[symbol]
         order_type = 'MKT'
         

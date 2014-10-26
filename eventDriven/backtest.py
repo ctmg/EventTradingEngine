@@ -121,7 +121,7 @@ class Backtest(object):
         stats = self.portfolio.output_summary_stats()
         
         print "Creating the equity curve...\n"
-        print self.portfolio.equity_curve.tail(10)
+        print self.portfolio.equity_curve.head(75)
         print ('')        
         
         print "Creating the historical positioning...\n"
@@ -133,8 +133,8 @@ class Backtest(object):
         print "Signals: %s" % self.signals
         print "Orders: %s" % self.orders
         print "Fills: %s" % self.fills
-        return self.portfolio.equity_curve
-    
+        
+        
     
     def simulate_trading(self):
         """

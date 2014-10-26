@@ -66,7 +66,7 @@ class MovingAverageCrossStrategy(Strategy):
                     long_sma = np.mean(bars[-self.long_window:])
                     dt = self.bars.get_latest_bar_datetime(symbol)
                     sig_dir = ""
-                    strength = 1.0
+                    strength = 0.5 #this is where you set percentage of capital
                     strategy_id = 1
                     
                     if short_sma > long_sma and self.bought[symbol] == 'OUT':

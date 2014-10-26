@@ -104,7 +104,7 @@ class FillEvent(Event):
     def calculate_commission(self):
         """CS charges 65 cents per futures contract
         need to include exhange fee, give-up fee"""
-        execution_fee = 0.65 * self.quantity
+        execution_fee = max(5, .06 * self.quantity)
         return execution_fee
         
         
