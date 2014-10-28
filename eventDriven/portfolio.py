@@ -113,7 +113,7 @@ class Portfolio(object):
         
         for s in self.symbol_list:
             #Approximation to the real value
-            market_value = self.current_positions[s] * self.bars.get_latest_bar_value(s, "close")
+            market_value = self.current_positions[s] * self.bars.get_latest_bar_value(s, "adj_close")
             dh[s] = market_value
             dh['total'] += market_value
         
@@ -155,8 +155,9 @@ class Portfolio(object):
         if fill.direction == 'SELL':
             fill_dir = -1
         
-        #update holdings list with new quantities
-        fill_cost = self.bars.get_latest_bar_value(fill.symbol, "close")
+        #update holdings list with new quantities - THIS IS WHERE THE FILL IS HAPPENING!!!! 
+        #getting the close after its already come in - should be getting next day open
+        fill_cost = self.bars.get_latest_bar_value(fill.symbol, "adj_close")
         cost = fill_dir * fill_cost * fill.quantity
         self.current_holdings[fill.symbol] += cost
         self.current_holdings['commission'] -= fill.commission #made negative
@@ -176,7 +177,7 @@ class Portfolio(object):
     
     def generate_naive_order(self, signal):
         """
-        files an Order object as a constant quantity sizing of 100
+        files an Order object as a function of signal strength (0.5) and current mrkt values
         without any risk management or position sizing considerations.
         
         Parameters:
@@ -187,7 +188,7 @@ class Portfolio(object):
         symbol = signal.symbol
         direction = signal.signal_type
         strength = signal.strength
-        mkt_quantity = int(floor((self.current_holdings['cash'] * strength) / self.bars.get_latest_bar_value(symbol, "close")))
+        mkt_quantity = int(floor((self.current_holdings['cash'] * strength) / self.bars.get_latest_bar_value(symbol, "adj_close")))
         cur_quantity = self.current_positions[symbol]
         order_type = 'MKT'
         
@@ -222,7 +223,7 @@ class Portfolio(object):
         curve.set_index('datetime', inplace=True)
         curve['returns'] = curve['total'].pct_change()
         curve['equity_curve'] = (1.0 + curve['returns']).cumprod()
-        curve['equity_curve'].plot(title='equity curve') # <----------added 10/24
+        curve['equity_curve'].plot(title='equity curve') # <----------added 10/24     
         self.equity_curve = curve
         
     

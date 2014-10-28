@@ -24,11 +24,13 @@ sql = """SELECT dp.price_date, sym.ticker, dp.adj_close_price
         INNER JOIN daily_price AS dp
         ON dp.symbol_id = sym.id
         WHERE sym.ticker IN %s
-        ORDER BY dp.price_date ASC;""" % (cleanTickers,)
+        ORDER BY dp.price_date ASC;""" % str(cleanTickers)
 
 #create a df out of the result
 dailyPrices = psql.read_sql(sql, con=con, index_col='price_date')
-dailyPrices.to_csv('testData/tet.csv' )
+dailyPrices.to_csv('testData/test.csv' )
 
 
-print dailyPrices.head()
+print dailyPrices.tail()
+
+

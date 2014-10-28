@@ -15,9 +15,9 @@ class Backtest(object):
     Encapsulates the settings and components for carrying out an event-driven
     backtest.
     """
-    def __init__(self, csv_dir, symbol_list, initial_capital,
+    def __init__(self, symbol_list, data_feed, initial_capital,
                  heartbeat, start_date, data_handler, execution_handler, 
-                 portfolio, strategy):
+                 portfolio, strategy, db_host=None, db_user=None, db_pass=None, db_name=None, csv_dir=None):
         """
         Initializes the backtest.
         
@@ -32,8 +32,8 @@ class Backtest(object):
         portfolio - (Class) Keeps track of current and prior positions
         strategy - (Class) generates signals based on market data
         """
-        self.csv_dir = csv_dir
         self.symbol_list = symbol_list
+        self.data_feed = data_feed
         self.initial_capital = initial_capital
         self.heartbeat = heartbeat
         self.start_date = start_date
@@ -42,22 +42,32 @@ class Backtest(object):
         self.portfolio_cls = portfolio
         self.strategy_cls = strategy
         
+        self.csv_dir = csv_dir
+        self.db_host = db_host
+        self.db_user = db_user
+        self.db_pass = db_pass
+        self.db_name = db_name
+        
+        
         self.events = Queue.Queue()
         self.signals = 0
         self.orders = 0
         self.fills = 0
         self.num_strats = 1
         
-        self._generate_trading_instances()
+        self._generate_trading_instances(data_feed)
     
 
-    def _generate_trading_instances(self):
+    def _generate_trading_instances(self, data_feed):
         """
         Generates the trading instance objects from their class types
         """
         print "Creating DataHandler, Strategy, Portfolio, and ExecutionHandler..."
-        self.data_handler = self.data_handler_cls(self.events, self.csv_dir, 
-                                                  self.symbol_list)
+        
+        if self.data_feed == 1: #HistoricCSVDataHandler
+            self.data_handler = self.data_handler_cls(self.events, self.csv_dir, self.symbol_list)
+        elif self.data_feed == 2: #MySQLDataHandler
+            self.data_handler = self.data_handler_cls(self.events, self.db_host, self.db_user, self.db_pass, self.db_name, self.symbol_list)                                              
                                                   
         self.strategy = self.strategy_cls(self.data_handler, self.events)
         

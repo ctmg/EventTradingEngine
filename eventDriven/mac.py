@@ -10,6 +10,7 @@ import datetime
 
 from backtest import Backtest
 from data import HistoricCSVDataHandler
+from data import MySQLDataHandler
 from event import SignalEvent
 from execution import SimulatedExecutionHandler
 from portfolio import Portfolio
@@ -85,23 +86,47 @@ class MovingAverageCrossStrategy(Strategy):
 if __name__ == '__main__':
     
     import os
-
-    if os.path.isdir("C:/Users/colin4567/Dropbox/EventTradingEngine/getData/testData"):
-        csv_dir = os.path.normpath("C:/Users/colin4567/Dropbox/EventTradingEngine/getData/testData")
-    elif os.path.isdir("/Users/colinmark-griffin/Dropbox/EventTradingEngine/getData/testData"):
-        csv_dir = os.path.normpath("/Users/colinmark-griffin/Dropbox/EventTradingEngine/getData/testData")
-    else:
-        raise SystemExit("No csv dir found for windows or mac")
-
+    
     symbol_list = ['aapl']
     initial_capital = 1000000.0
-    start_date = datetime.datetime(1991,1,3,0,0,0)
+    start_date = datetime.datetime(2000,1,3,0,0,0)
     heartbeat = 0.0
+    data_feed = 2 # 1 is csv, 2 is MySQL
+    
+    if data_feed == 1:
+        if os.path.isdir("C:/Users/colin4567/Dropbox/EventTradingEngine/getData/testData"):
+            csv_dir = os.path.normpath("C:/Users/colin4567/Dropbox/EventTradingEngine/getData/testData")
+        elif os.path.isdir("/Users/colinmark-griffin/Dropbox/EventTradingEngine/getData/testData"):
+            csv_dir = os.path.normpath("/Users/colinmark-griffin/Dropbox/EventTradingEngine/getData/testData")
+        else:
+            raise SystemExit("No csv dir found for windows or mac")
+            
+        backtest = Backtest(symbol_list, 
+                            data_feed,
+                            initial_capital, 
+                            heartbeat, 
+                            start_date, 
+                            HistoricCSVDataHandler, 
+                            SimulatedExecutionHandler, 
+                            Portfolio, 
+                            MovingAverageCrossStrategy, 
+                            csv_dir=csv_dir)  
+                        
+    elif data_feed == 2:
+        db_host = 'localhost'; db_user = 'sec_user'; db_pass = 'longgamma'; db_name = 'securities_master';
+        
+        backtest = Backtest(symbol_list, 
+                            data_feed,
+                            initial_capital, 
+                            heartbeat, 
+                            start_date, 
+                            MySQLDataHandler, 
+                            SimulatedExecutionHandler, 
+                            Portfolio, 
+                            MovingAverageCrossStrategy, 
+                            db_host=db_host, db_user=db_user, db_pass=db_pass, db_name=db_name)  
 
-    backtest = Backtest(csv_dir, symbol_list, initial_capital, heartbeat, 
-                        start_date, HistoricCSVDataHandler, 
-                        SimulatedExecutionHandler, Portfolio, 
-                        MovingAverageCrossStrategy)                    
+                  
     
     backtest.simulate_trading()
                     
