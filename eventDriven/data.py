@@ -67,6 +67,13 @@ class DataHandler(object):
         raise NotImplementedError("Should implement get_latest_bar_values()")
     
     @abstractmethod
+    def get_latest_ror_value(self, symbol):
+        """
+        Returns the last ror values for the adj_close series
+        """
+        raise NotImplementedError("Should implement get_latest_ror_value()")
+    
+    @abstractmethod
     def update_bars(self):
         """
         Pushes the latest bars to the bars_queue for each symbol in a tuple 
@@ -202,6 +209,19 @@ class HistoricCSVDataHandler(DataHandler):
             raise
         else:
             return np.array([getattr(b[1], val_type) for b in bars_list])
+            
+            
+    def get_latest_ror_value(self, symbol):
+        """
+        Returns the last ror values for the adj_close series
+        """
+        try:
+            bars_list = self.get_latest_bars(symbol, 2)
+        except KeyError:
+            print "That symbol is not available in the historical data set."
+            raise
+        else:
+            return np.array(pd.Series([getattr(b[1], 'adj_close') for b in bars_list]).pct_change())
     
     
     def update_bars(self):
@@ -349,9 +369,23 @@ class MySQLDataHandler(DataHandler):
             print "That symbol is not available in the historical data set."
             raise
         else:
+            #b[0] = datetime, b[1] = bars
             return np.array([getattr(b[1], val_type) for b in bars_list])
     
     
+    def get_latest_ror_value(self, symbol):
+        """
+        Returns the last ror values for the adj_close series
+        """
+        try:
+            bars_list = self.get_latest_bars(symbol, 2)
+        except KeyError:
+            print "That symbol is not available in the historical data set."
+            raise
+        else:
+            return np.array(pd.Series([getattr(b[1], 'adj_close') for b in bars_list]).pct_change())
+    
+
     def update_bars(self):
         """
         Pushes the latest bar to the latest_symbol_data structure

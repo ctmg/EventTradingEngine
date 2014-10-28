@@ -112,8 +112,8 @@ class Portfolio(object):
         dh['total'] = self.current_holdings['cash'] 
         
         for s in self.symbol_list:
-            #Approximation to the real value
-            market_value = self.current_positions[s] * self.bars.get_latest_bar_value(s, "adj_close")
+            #Approximation to the real value - should this be the true close? Then what about dividends..
+            market_value = self.current_holdings[s] * self.bars.get_latest_ror_value(s)
             dh[s] = market_value
             dh['total'] += market_value
         
@@ -157,7 +157,7 @@ class Portfolio(object):
         
         #update holdings list with new quantities - THIS IS WHERE THE FILL IS HAPPENING!!!! 
         #getting the close after its already come in - should be getting next day open
-        fill_cost = self.bars.get_latest_bar_value(fill.symbol, "adj_close")
+        fill_cost = self.bars.get_latest_bar_value(fill.symbol, "close")
         cost = fill_dir * fill_cost * fill.quantity
         self.current_holdings[fill.symbol] += cost
         self.current_holdings['commission'] -= fill.commission #made negative
@@ -188,7 +188,7 @@ class Portfolio(object):
         symbol = signal.symbol
         direction = signal.signal_type
         strength = signal.strength
-        mkt_quantity = int(floor((self.current_holdings['cash'] * strength) / self.bars.get_latest_bar_value(symbol, "adj_close")))
+        mkt_quantity = int(floor((self.initial_capital * strength) / self.bars.get_latest_bar_value(symbol, "close")))
         cur_quantity = self.current_positions[symbol]
         order_type = 'MKT'
         
@@ -219,18 +219,24 @@ class Portfolio(object):
         """
         Creates a pandas df for the all_holdings list of dicts
         """
+        from copy import deepcopy
         curve = pd.DataFrame(self.all_holdings)
         curve.set_index('datetime', inplace=True)
         curve['returns'] = curve['total'].pct_change()
         curve['equity_curve'] = (1.0 + curve['returns']).cumprod()
+        #reorganize columns
+        curve_columns = deepcopy(self.symbol_list)
+        [curve_columns.append(x) for x in ['cash', 'commission', 'total', 'returns', 'equity_curve']]
+        curve = curve[curve_columns]
         curve['equity_curve'].plot(title='equity curve') # <----------added 10/24     
+        curve['cash'].plot(secondary_y=True)
         self.equity_curve = curve
         
     
     def create_positioning_dataframe(self):
         positions = pd.DataFrame(self.all_positions)
         positions.set_index('datetime', inplace=True)
-        positions['aapl'].plot(secondary_y=True)
+        #positions['aapl'].plot(secondary_y=True)
         self.positions = positions
         
         

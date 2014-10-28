@@ -60,14 +60,14 @@ class MovingAverageCrossStrategy(Strategy):
         """
         if event.type == 'MARKET':
             for symbol in self.symbol_list:
-                bars = self.bars.get_latest_bars_values(symbol, "close", N=self.long_window)
+                bars = self.bars.get_latest_bars_values(symbol, "adj_close", N=self.long_window)
                 
                 if bars is not None and bars != []:
                     short_sma = np.mean(bars[-self.short_window:])
                     long_sma = np.mean(bars[-self.long_window:])
                     dt = self.bars.get_latest_bar_datetime(symbol)
                     sig_dir = ""
-                    strength = 0.5 #this is where you set percentage of capital
+                    strength = 1.0 / len(self.symbol_list) #this is where you set percentage of capital - set to 1/n
                     strategy_id = 1
                     
                     if short_sma > long_sma and self.bought[symbol] == 'OUT':
@@ -87,7 +87,7 @@ if __name__ == '__main__':
     
     import os
     
-    symbol_list = ['aapl']
+    symbol_list = ['aapl', 'ibm', 'xom', 'intc', 'aa']
     initial_capital = 1000000.0
     start_date = datetime.datetime(2000,1,3,0,0,0)
     heartbeat = 0.0
