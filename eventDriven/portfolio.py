@@ -112,8 +112,8 @@ class Portfolio(object):
         dh['total'] = self.current_holdings['cash'] 
         
         for s in self.symbol_list:
-            # update_holdings_from_fill should put original fill price for current_holdings, and this line updates pricing
-            market_value = round(self.current_holdings[s] * (1 + self.bars.get_latest_ror_value(s)), 2)
+            #Approximation to the real value - should this be the true close? Then what about dividends..
+            market_value = self.current_holdings[s] * self.bars.get_latest_ror_value(s)
             dh[s] = market_value
             dh['total'] += market_value
         
