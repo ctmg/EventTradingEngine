@@ -89,7 +89,7 @@ if __name__ == '__main__':
     
     symbol_list = ['aapl', 'ibm', 'xom', 'intc', 'aa']
     initial_capital = 1000000.0
-    start_date = datetime.datetime(2000,1,3,0,0,0)
+    start_date = datetime.datetime(2001,1,3,0,0,0)
     heartbeat = 0.0
     data_feed = 2 # 1 is csv, 2 is MySQL
     

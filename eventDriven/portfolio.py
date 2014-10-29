@@ -112,8 +112,9 @@ class Portfolio(object):
         dh['total'] = self.current_holdings['cash'] 
         
         for s in self.symbol_list:
-            #Approximation to the real value - should this be the true close? Then what about dividends..
-            market_value = self.current_holdings[s] * self.bars.get_latest_ror_value(s)
+            #this line updates value of holdings - why is current_holdings in shares here, not dollars - once you change then you can use below with ror
+            #(1 + self.bars.get_latest_ror_value(s))
+            market_value = self.current_positions[s] * self.bars.get_latest_bar_value(s, 'close')            
             dh[s] = market_value
             dh['total'] += market_value
         
@@ -249,8 +250,7 @@ class Portfolio(object):
         returns = self.equity_curve['returns']
         pnl = self.equity_curve['equity_curve']
         
-        #what is the periods number here?
-        sharpe_ratio = create_sharpe_ratio(returns, periods=252*60*6.5)
+        sharpe_ratio = create_sharpe_ratio(returns)
         max_dd, dd_duration = create_drawdowns(pnl)
         
         stats = [("Total Return", "%0.2f%%" % ((total_return - 1)*100)),

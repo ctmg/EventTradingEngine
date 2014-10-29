@@ -10,7 +10,7 @@ import pandas as pd
 
 
 
-def create_sharpe_ratio(returns, periods=252):
+def create_sharpe_ratio(returns, periods=260):
     """based on benchmark of zero (risk-free rate=0%)
     
     Parameters:

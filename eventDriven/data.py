@@ -95,10 +95,11 @@ class HistoricCSVDataHandler(DataHandler):
     csv_dir - absolute directory to the csv files
     symbol_list - list of symbol strings
     """
-    def __init__(self, events, csv_dir, symbol_list):
+    def __init__(self, events, csv_dir, symbol_list, start_date):
         self.events = events
         self.csv_dir = csv_dir
         self.symbol_list = symbol_list
+        self.start_date = start_date
         
         self.symbol_data = {}
         self.latest_symbol_data = {}
@@ -248,7 +249,7 @@ import pandas.io.sql as psql
         
 class MySQLDataHandler(DataHandler):
     
-    def __init__(self, events, db_host, db_user, db_pass, db_name, symbol_list):
+    def __init__(self, events, db_host, db_user, db_pass, db_name, symbol_list, start_date):
         self.events = events        
         self.db_host = db_host
         self.db_user = db_user
@@ -257,11 +258,14 @@ class MySQLDataHandler(DataHandler):
         self.con = mdb.connect(host=db_host, user=db_user, passwd=db_pass, db=db_name)
         
         self.symbol_list = symbol_list
+        self.start_date = start_date        
         self.symbol_data = {}
         self.latest_symbol_data = {}
         self.continue_backtest = True
         
         self._update_symbol_data(self.con)
+        #puts bars up to start_date into latest_symbol_data
+        self._get_historical_bars()
     
     
     def _update_symbol_data(self, con):
@@ -303,6 +307,7 @@ class MySQLDataHandler(DataHandler):
         """
         for b in self.symbol_data[symbol]:
             yield b
+
 
     #Begin defining virtual classes
 
@@ -355,7 +360,6 @@ class MySQLDataHandler(DataHandler):
             print "That symbol is not available in the historical data set."
             raise
         else:
-            #why the [1]?
             return getattr(bars_list[-1][1], val_type)
     
     
@@ -371,19 +375,6 @@ class MySQLDataHandler(DataHandler):
         else:
             #b[0] = datetime, b[1] = bars
             return np.array([getattr(b[1], val_type) for b in bars_list])
-    
-    
-    def get_latest_ror_value(self, symbol):
-        """
-        Returns the last ror values for the adj_close series
-        """
-        try:
-            bars_list = self.get_latest_bars(symbol, 2)
-        except KeyError:
-            print "That symbol is not available in the historical data set."
-            raise
-        else:
-            return np.array(pd.Series([getattr(b[1], 'adj_close') for b in bars_list]).pct_change())
     
 
     def update_bars(self):
@@ -401,6 +392,38 @@ class MySQLDataHandler(DataHandler):
                     self.latest_symbol_data[s].append(bar)
         self.events.put(MarketEvent())
         
+        
+    def get_latest_ror_value(self, symbol):
+        """
+        Returns the last ror values for the adj_close series
+        """
+        try:
+            bars_list = self.get_latest_bars_values(symbol, 'adj_close', 2)
+        except KeyError:
+            print "That symbol is not available in the historical data set."
+            raise
+        else:
+            return np.array(pd.Series(bars_list).pct_change())[-1]
+                
+        
+    def _get_historical_bars(self):
+        """
+        Loads bars from before the start date - issue here is that bar for start_date has already been yielded - need to fix
+        """
+        for s in self.symbol_list:
+            continue_historical = True
+            while  continue_historical:
+                try:
+                    bar = self._get_new_bar(s).next()
+                except StopIteration:
+                    self.continue_backtest = False
+                else :
+                    if bar is not None and bar[0].to_datetime() < self.start_date:
+                        self.latest_symbol_data[s].append(bar)
+                    else:
+                        continue_historical = False
+
+
 
 
 
