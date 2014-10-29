@@ -355,7 +355,6 @@ class MySQLDataHandler(DataHandler):
             print "That symbol is not available in the historical data set."
             raise
         else:
-            #why the [1]?
             return getattr(bars_list[-1][1], val_type)
     
     
@@ -378,13 +377,13 @@ class MySQLDataHandler(DataHandler):
         Returns the last ror values for the adj_close series
         """
         try:
-            bars_list = self.get_latest_bars(symbol, 2)
+            bars_list = self.get_latest_bars_values(symbol, 'adj_close', 2)
         except KeyError:
             print "That symbol is not available in the historical data set."
             raise
         else:
-            return np.array(pd.Series([getattr(b[1], 'adj_close') for b in bars_list]).pct_change())
-    
+            return np.array(pd.Series(bars_list).pct_change())[-1]
+                
 
     def update_bars(self):
         """

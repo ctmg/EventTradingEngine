@@ -131,8 +131,12 @@ class Backtest(object):
         stats = self.portfolio.output_summary_stats()
         
         print "Creating the equity curve...\n"
-        print self.portfolio.equity_curve.head(75)
+        print self.portfolio.equity_curve[50:75]
         print ('')        
+
+        print "Ending equity curve...\n"
+        print self.portfolio.equity_curve.tail(10)        
+        
         
         print "Creating the historical positioning...\n"
         print self.portfolio.positions.tail(10)
