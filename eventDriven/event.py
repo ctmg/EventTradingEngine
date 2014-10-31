@@ -35,7 +35,7 @@ class SignalEvent(Event):
         strategy_id - Unique identifier for strategy that generated the signal
         symbol - ticker symbol
         datetime - timestamp of when signal was generated
-        signal_type - 'LONG' or 'SHORT'
+        signal_type - 'LONG' or 'SHORT' or 'EXIT'
         strength - Adjustment factor "suggestion" used to scale
                     quantity at the portfolio level. Used for mean reversion
         """
@@ -57,19 +57,20 @@ class OrderEvent(Event):
     quantity - Non-negative integer 
     direction - 'BUY' or 'SELL'
     """
-    def __init__(self, symbol, order_type, quantity, direction):
+    def __init__(self, symbol, order_type, quantity, direction, position_change):
         self.type = 'ORDER'
         self.symbol = symbol
         self.order_type = order_type
         self.quantity = quantity
         self.direction = direction
+        self.position_change = position_change
     
     def print_order(self):
         """
         Outputs the values within the order
         """
-        print "Order: Symbol=%s, Type=%s, Quantity=%s, Direction=%s" % \
-                (self.symbol, self.type, self.quantity, self.direction)
+        print "Order: Symbol=%s, Type=%s, Quantity=%s, Direction=%s, Position_Change=%s" % \
+                (self.symbol, self.type, self.quantity, self.direction, self.position_change)
                 
 
 class FillEvent(Event):
@@ -87,14 +88,14 @@ class FillEvent(Event):
     fill_cost - holdings value in dollars
     commission - optional
     """
-    def __init__(self, timeindex, symbol, exchange, quantity, direction, fill_cost, commission=None):
+    def __init__(self, timeindex, symbol, exchange, quantity, direction, position_change, commission=None):
         self.type = 'FILL'
         self.timeindex = timeindex
         self.symbol = symbol
-        self.exhange = exchange
+        self.exchange = exchange
         self.quantity = quantity
         self.direction = direction
-        self.fill_cost = fill_cost
+        self.position_change = position_change
         
         if commission is None:
             self.commission = self.calculate_commission()

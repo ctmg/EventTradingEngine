@@ -131,7 +131,7 @@ class Backtest(object):
         stats = self.portfolio.output_summary_stats()
         
         print "Creating the equity curve...\n"
-        print self.portfolio.equity_curve[50:75]
+        print self.portfolio.equity_curve[:50]
         print ('')        
 
         print "Ending equity curve...\n"

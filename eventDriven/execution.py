@@ -60,6 +60,6 @@ class SimulatedExecutionHandler(ExecutionHandler):
         """
         if event.type == 'ORDER':
             fill_event = FillEvent(datetime.datetime.utcnow(), event.symbol,
-                                   'ARCA', event.quantity, event.direction, 
-                                   None)
+                                   'ARCA', event.quantity, event.direction, event.position_change, 
+                                  None)
             self.events.put(fill_event)

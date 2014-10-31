@@ -112,11 +112,12 @@ class Portfolio(object):
         dh['total'] = self.current_holdings['cash'] 
         
         for s in self.symbol_list:
-            #this line updates value of holdings - why is current_holdings in shares here, not dollars - once you change then you can use below with ror
-            #(1 + self.bars.get_latest_ror_value(s))
-            market_value = self.current_positions[s] * self.bars.get_latest_bar_value(s, 'close')            
+            #updates value of holdings for both current and all holdings
+            market_value = self.current_holdings[s] * (1 + self.bars.get_latest_ror_value(s))          
+            self.current_holdings[s] = market_value            
             dh[s] = market_value
             dh['total'] += market_value
+            
         
         #Append the current holdings
         self.all_holdings.append(dh)
@@ -156,13 +157,19 @@ class Portfolio(object):
         if fill.direction == 'SELL':
             fill_dir = -1
         
-        #update holdings list with new quantities - THIS IS WHERE THE FILL IS HAPPENING!!!! 
-        #getting the close after its already come in - should be getting next day open
-        fill_cost = self.bars.get_latest_bar_value(fill.symbol, "close")
-        cost = fill_dir * fill_cost * fill.quantity
+        #THIS IS WHERE THE FILL IS HAPPENING!!!! 
+        #changed to be same as market_value in update_timeindex
+        if fill.position_change == 'EXIT':
+            fill_cost = self.current_holdings[fill.symbol] 
+            cost = fill_dir * fill_cost
+        else:
+            fill_cost = self.bars.get_latest_bar_value(fill.symbol, 'close')
+            cost = fill_dir * fill_cost * fill.quantity
+        
         self.current_holdings[fill.symbol] += cost
         self.current_holdings['commission'] -= fill.commission #made negative
         self.current_holdings['cash'] -= (cost + fill.commission) 
+        #something is funky here
         self.current_holdings['total'] -= (cost + fill.commission)
     
     
@@ -178,7 +185,7 @@ class Portfolio(object):
     
     def generate_naive_order(self, signal):
         """
-        files an Order object as a function of signal strength (0.5) and current mrkt values
+        files an Order object as a function of signal strength (1/N)) and current mrkt values
         without any risk management or position sizing considerations.
         
         Parameters:
@@ -193,15 +200,20 @@ class Portfolio(object):
         cur_quantity = self.current_positions[symbol]
         order_type = 'MKT'
         
+        #should be able to use direction in place of position_change and get rid of position_change from init
         if direction == "LONG" and cur_quantity == 0:
-            order = OrderEvent(symbol, order_type, mkt_quantity, 'BUY')
-        if direction == "SHORT" and cur_quantity == 0:
-            order = OrderEvent(symbol, order_type, mkt_quantity, 'SELL')
+            position_change = 'LONG_ENTRY'
+            order = OrderEvent(symbol, order_type, mkt_quantity, 'BUY', position_change)
+        elif direction == "SHORT" and cur_quantity == 0:
+            position_change = 'SHORT_ENTRY'
+            order = OrderEvent(symbol, order_type, mkt_quantity, 'SELL', position_change)
         
-        if direction == 'EXIT' and cur_quantity > 0:
-            order = OrderEvent(symbol, order_type, abs(cur_quantity), 'SELL')
-        if direction == 'EXIT' and cur_quantity < 0:
-            order = OrderEvent(symbol, order_type, abs(cur_quantity), 'BUY')
+        elif direction == 'EXIT' and cur_quantity > 0:
+            position_change = direction
+            order = OrderEvent(symbol, order_type, abs(cur_quantity), 'SELL', position_change)
+        elif direction == 'EXIT' and cur_quantity < 0:
+            position_change= direction
+            order = OrderEvent(symbol, order_type, abs(cur_quantity), 'BUY', position_change)
         
         return order
         

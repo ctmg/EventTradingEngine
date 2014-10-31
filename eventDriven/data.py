@@ -403,7 +403,7 @@ class MySQLDataHandler(DataHandler):
             print "That symbol is not available in the historical data set."
             raise
         else:
-            return np.array(pd.Series(bars_list).pct_change())[-1]
+            return np.array(pd.Series(bars_list).pct_change())[-1] 
                 
         
     def _get_historical_bars(self):
