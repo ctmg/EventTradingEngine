@@ -111,12 +111,15 @@ class Portfolio(object):
         dh['commission'] = self.current_holdings['commission'] 
         dh['total'] = self.current_holdings['cash'] 
         
-        for s in self.symbol_list:
+        for i in self.symbol_list:
             #updates value of holdings for both current and all holdings
-            market_value = self.current_holdings[s] * (1 + self.bars.get_latest_ror_value(s))          
-            self.current_holdings[s] = market_value            
-            dh[s] = market_value
+            market_value = self.current_holdings[i] * (1 + self.bars.get_latest_ror_value(i))          
+            self.current_holdings[i] = market_value            
+            dh[i] = market_value
             dh['total'] += market_value
+        
+#        test = pd.DataFrame(dh.items(), columns=['ticker', 'value'])
+#        test.to_csv('debug_dh.csv')
             
         
         #Append the current holdings
@@ -196,7 +199,9 @@ class Portfolio(object):
         symbol = signal.symbol
         direction = signal.signal_type
         strength = signal.strength
-        mkt_quantity = int(floor((self.initial_capital * strength) / self.bars.get_latest_bar_value(symbol, "close")))
+        #THIS IS WHERE POSITION SIZING IS DONE - printing all orders
+        print (symbol, self.bars.get_latest_bar_datetime(symbol))
+        mkt_quantity = floor((self.current_holdings['total'] * strength) / self.bars.get_latest_bar_value(symbol, "close"))
         cur_quantity = self.current_positions[symbol]
         order_type = 'MKT'
         

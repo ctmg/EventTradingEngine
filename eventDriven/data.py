@@ -236,6 +236,8 @@ class HistoricCSVDataHandler(DataHandler):
             except StopIteration:
                 self.continue_backtest = False
             else:
+                #THIS IS WHERE YOU SHOULD BE CHECKING IF YOUR GETTING ANY DATA FOR THAT SYMBOL 
+                #WHAT HAPPENS IF YOU DONT APPEND A BAR FOR THE SYMBOL ???
                 if bar is not None:
                     self.latest_symbol_data[s].append(bar)
         self.events.put(MarketEvent())
@@ -277,7 +279,8 @@ class MySQLDataHandler(DataHandler):
                             INNER JOIN securities_master.daily_price AS dp
                             ON dp.symbol_id = sym.id
                             WHERE sym.ticker = "%s"
-                            ORDER BY dp.price_date ASC;""" %(s,)
+                            and dp.price_date >= "%i-01-01"
+                            ORDER BY dp.price_date ASC;""" %(s, (self.start_date.year-1)) #added this in to only get a year of databefore start_date
             #this is a dict where market name is key and value is df of prices
             self.symbol_data[s] = psql.read_sql(sql_bars, con=con, index_col='price_date', parse_dates=['price_date'])
             self.symbol_data[s].rename(columns={'open_price':'open', 'high_price':'high', 'low_price':'low', 
@@ -295,6 +298,7 @@ class MySQLDataHandler(DataHandler):
         
         #reindex the df's
         for s in self.symbol_list:
+            #this creates the generator and creates union of all indexes
             self.symbol_data[s] = self.symbol_data[s].reindex(index=comb_index,
                                                     method='pad').iterrows()
     
@@ -402,7 +406,7 @@ class MySQLDataHandler(DataHandler):
         except KeyError:
             print "That symbol is not available in the historical data set."
             raise
-        else:
+        else:  
             return np.array(pd.Series(bars_list).pct_change())[-1] 
                 
         

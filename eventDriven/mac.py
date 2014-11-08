@@ -6,6 +6,7 @@ Created on Tue Sep 16 11:50:53 2014
 """
 
 import numpy as np
+import pandas as pd
 import datetime
 
 from backtest import Backtest
@@ -87,9 +88,11 @@ if __name__ == '__main__':
     
     import os
     
-    symbol_list = ['aapl', 'ibm', 'xom', 'intc', 'aa']
-    initial_capital = 1000000.0
-    start_date = datetime.datetime(2009,1,3,0,0,0)
+    symbol_list = ['ba', 'noc', 'lmt'] 
+    #broken = ['nwsa', 'goog', 'alle', 'navi']
+    #symbols =  pd.read_csv("C:/Users/colin4567/Dropbox/EventTradingEngine/getData/testData/sp500ticks.csv"); symbol_list = symbols['tickers'].tolist()
+    initial_capital = 100000000.0 #100m
+    start_date = datetime.datetime(2005,1,3,0,0,0)
     heartbeat = 0.0
     data_feed = 2 # 1 is csv, 2 is MySQL
     
