@@ -397,6 +397,23 @@ class MySQLDataHandler(DataHandler):
         self.events.put(MarketEvent())
         
         
+        
+    def update_symbol_list(self, min_bars):
+        """
+        Creates latest_symbol_list, which is symbols that have current data for model.
+        Checks to see if any bars are NA, and removes that symbol from the symbol_list
+
+        """
+        current_symbol_list = []
+             
+        for s in self.symbol_list:
+            long_window_bars = self.get_latest_bars_values(s, 'close', N=min_bars)
+            if len(long_window_bars[~np.isnan(long_window_bars)]) >= min_bars:
+                current_symbol_list.append(s) 
+        self.latest_symbol_list = current_symbol_list
+        
+        
+    
     def get_latest_ror_value(self, symbol):
         """
         Returns the last ror values for the adj_close series

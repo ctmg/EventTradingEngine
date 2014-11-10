@@ -89,6 +89,7 @@ class Backtest(object):
             #Update the market bars
             if self.data_handler.continue_backtest == True:
                 self.data_handler.update_bars()
+                self.data_handler.update_symbol_list(min_bars=self.strategy.long_window)
             else:
                 break
             

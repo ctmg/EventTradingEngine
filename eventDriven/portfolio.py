@@ -45,7 +45,7 @@ class Portfolio(object):
         self.all_positions = self.construct_all_positions()
         self.current_positions = dict((k,v) for k,v in [(s,0) for s in self.symbol_list])
         self.all_holdings = self.construct_all_holdings()
-        self.current_holdings = self.construct_current_holdings()    
+        self.current_holdings = self.construct_current_holdings()   
     
     
     def construct_all_positions(self):
@@ -111,8 +111,10 @@ class Portfolio(object):
         dh['commission'] = self.current_holdings['commission'] 
         dh['total'] = self.current_holdings['cash'] 
         
-        for i in self.symbol_list:
+        for i in self.bars.latest_symbol_list: #changed to latest
             #updates value of holdings for both current and all holdings
+            #this should have strength in it so that you can scale down positions when a new symbol comes on
+            #need to mark the commission on that trading as well
             market_value = self.current_holdings[i] * (1 + self.bars.get_latest_ror_value(i))          
             self.current_holdings[i] = market_value            
             dh[i] = market_value

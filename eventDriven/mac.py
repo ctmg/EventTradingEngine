@@ -58,9 +58,12 @@ class MovingAverageCrossStrategy(Strategy):
         
         Parameters:
         event - a MarketEvent object
+        
+        To Do:
+        strength needs to be applied to all positions when a new symbol comes on, not just to new position
         """
         if event.type == 'MARKET':
-            for symbol in self.symbol_list:
+            for symbol in self.bars.latest_symbol_list: 
                 bars = self.bars.get_latest_bars_values(symbol, "adj_close", N=self.long_window)
                 
                 if bars is not None and bars != []:
@@ -68,7 +71,7 @@ class MovingAverageCrossStrategy(Strategy):
                     long_sma = np.mean(bars[-self.long_window:])
                     dt = self.bars.get_latest_bar_datetime(symbol)
                     sig_dir = ""
-                    strength = 1.0 / len(self.symbol_list) #this is where you set percentage of capital - set to 1/n
+                    strength = 1.0 / len(self.bars.latest_symbol_list) #this is where you set percentage of capital - how can I easily rescale previous positions when new symbol becomes eligable
                     strategy_id = 1
                     
                     if short_sma > long_sma and self.bought[symbol] == 'OUT':
@@ -88,11 +91,11 @@ if __name__ == '__main__':
     
     import os
     
-    symbol_list = ['ba', 'noc', 'lmt'] 
+    symbol_list = ['ba', 'noc', 'lmt', 'nwsa', 'goog', 'alle', 'navi'] 
     #broken = ['nwsa', 'goog', 'alle', 'navi']
     #symbols =  pd.read_csv("C:/Users/colin4567/Dropbox/EventTradingEngine/getData/testData/sp500ticks.csv"); symbol_list = symbols['tickers'].tolist()
-    initial_capital = 100000000.0 #100m
-    start_date = datetime.datetime(2005,1,3,0,0,0)
+    initial_capital = 10000000.0 #10m
+    start_date = datetime.datetime(2013,6,3,0,0,0)
     heartbeat = 0.0
     data_feed = 2 # 1 is csv, 2 is MySQL
     
